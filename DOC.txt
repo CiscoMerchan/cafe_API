@@ -1,0 +1,80 @@
+SET API
+
+First: "/random"
+CHALLENGE
+"""In order to do this, we have to turn our random_cafe SQLAlchemy Object into a JSON. This process is called serialization.
+Flask has a "serialisation" helper method built-in called jsonify() . But we have to
+provide the structure of the JSON to return."""
+    Request to the database using JSON. using 'jsonify()' to return the result.
+
+**************ALTERNATIVE SOLUTIONS *****************
+
+But in most cases, you might just want to return all the data you have on a particular record and it would drive you
+ crazy if you had to write out all that code for every route.
+
+So another method of serialising our database row Object to JSON is by first converting it to a dictionary and then
+ using jsonify() to convert the dictionary (which is very similar in structure to JSON) to a JSON.
+
+CODE   :
+
+class Cafe(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), unique=True, nullable=False)
+    map_url = db.Column(db.String(500), nullable=False)
+    img_url = db.Column(db.String(500), nullable=False)
+    location = db.Column(db.String(250), nullable=False)
+    seats = db.Column(db.String(250), nullable=False)
+    has_toilet = db.Column(db.Boolean, nullable=False)
+    has_wifi = db.Column(db.Boolean, nullable=False)
+    has_sockets = db.Column(db.Boolean, nullable=False)
+    can_take_calls = db.Column(db.Boolean, nullable=False)
+    coffee_price = db.Column(db.String(250), nullable=True)
+
+    def to_dict(self):
+        #Method 1.
+        dictionary = {}
+        # Loop through each column in the data record
+        for column in self.__table__.columns:
+            #Create a new dictionary entry;
+            # where the key is the name of the column
+            # and the value is the value of the column
+            dictionary[column.name] = getattr(self, column.name)
+        return dictionary
+
+        #Method 2. Altenatively use Dictionary Comprehension to do the same thing.
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+
+@app.route("/random")
+def get_random_cafe():
+    cafes = db.session.query(Cafe).all()
+    random_cafe = random.choice(cafes)
+    #Simply convert the random_cafe data record to a dictionary of key-value pairs.
+    return jsonify(cafe=random_cafe.to_dict())
+    **********************************************************************
+
+    HTTP GET - All the Cafes
+
+    CHALLENGE:
+
+1. Create another GET route that's called /all
+
+2. When a GET request is made to this /all route, your server should return all the cafes in your database as a JSON.
+def all_cafe():
+    cafes = db.session.query(Cafe).all()
+    """return all the information in the database through a list Comprehension  """
+    return jsonify(cafes=[cafe.to_dict() for cafe in cafes])
+
+    ********************************************
+
+TO TEST API
+using Postman
+TEST the GET request. In Postman create requests
+Create POST request in Postman. in main.py create a '/add' and make the request through Postman.
+In Postman in the body the pair Key: Value have to be recreated as the request.form.get['Key'] and provide the
+Value
+**********
+PATCH: """Update coffee price using PATCH """
+   """<cafe_id> is a GET from the user. That id will be searched in the db and once it is located. it will go to
+     where is the 'coffee_price' column of that cafe and modify the value (the price) the Key and Value are donne in
+      Postman. URL e.g: http://127.0.0.1:5000/update-price/22?new_price=$4"""
